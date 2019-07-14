@@ -1,0 +1,69 @@
+---
+# Install server for Traiding appication
+# 
+- name: Install sever with traiding app
+  hosts: app-servers
+  become: yes
+  vars:
+    services_list:
+      - manager
+      - frontend
+      - logic
+      - query
+
+
+  tasks:
+  - name: Install system yum packages
+    yum:
+      name: "{{ item }}"
+      state: installed
+    with_items:
+      - epel-release
+      - vim 
+      - curl 
+      - tmux
+      - python-setuptools
+      - python36 
+      - python36-pip
+   
+  - name: Update pip3
+    pip: 
+      name: pip
+      state: latest
+      executable: pip3
+      #executable: /usr/bin/pip3
+    tags:
+      - tst
+
+  - name: Update sudoers to enable 
+    lineinfile:
+      path: /etc/sudoers
+      regexp: '^ansibleuser'
+      line: 'ansibleuser ALL=(ALL) NOPASSWD: ALL'
+      validate: 'visudo -cf %s'
+
+  - name: Install pip3 packages
+    pip:
+      name: "{{ item }}"
+      executable: /usr/bin/pip3
+    with_items:
+      - Flask
+      - PyYAML
+      - requests
+
+  - name: Create system users for running applications
+    user:
+      name: "app-{{ services_list }}"
+      system: "yes"
+      shell: "/usr/bin/false"
+
+  - name: Create directories for applications
+    file: 
+      path: "/opt/app-{{ services_list }}"
+      state: directory
+      mode: '0755'
+      owner: "app-{{ services_list }}"
+      group: "app-{{ services_list }}"
+
+
+#  - name: Install applications
