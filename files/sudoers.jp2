@@ -1,0 +1,2 @@
+Defaults:{{ admin_user }} !requiretty
+{{ admin_user }} ALL=(ALL) NOPASSWD:ALL

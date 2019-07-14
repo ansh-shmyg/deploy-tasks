@@ -1,5 +1,5 @@
 ---
-# Install server for Traiding appication
+# Install server for Trading application
 # 
 - name: Install sever with traiding app
   hosts: app-servers
@@ -10,18 +10,38 @@
       - frontend
       - logic
       - query
-
+    admin_user: "centos"
 
   tasks:
+  - name: Install common admin user - "{{ admin_user }}"
+    user:
+      name: "{{ admin_user }}"
+      shell: /bin/bash
+      state: present
+      createhome: yes
+
+  - name: Configure sudoers file for admin account
+    template:
+      src:  files/sudoers.jp2
+      dest: /etc/sudoers.d/{{ admin_user }}
+
+  - name: Copy SSH public keys
+    authorized_key:
+      manage_dir: yes
+      key:  "{{ lookup('file', 'files/ssh_keys.pub') }}"
+      user: "{{ admin_user }}"
+
   - name: Install system yum packages
     yum:
       name: "{{ item }}"
       state: installed
     with_items:
       - epel-release
-      - vim 
+      - vim
+      - nano
       - curl 
       - tmux
+      - git
       - python-setuptools
       - python36 
       - python36-pip
@@ -31,21 +51,12 @@
       name: pip
       state: latest
       executable: pip3
-      #executable: /usr/bin/pip3
-    tags:
-      - tst
-
-  - name: Update sudoers to enable 
-    lineinfile:
-      path: /etc/sudoers
-      regexp: '^ansibleuser'
-      line: 'ansibleuser ALL=(ALL) NOPASSWD: ALL'
-      validate: 'visudo -cf %s'
+      extra_args: --install-option="--prefix=/usr/"
 
   - name: Install pip3 packages
     pip:
       name: "{{ item }}"
-      executable: /usr/bin/pip3
+      executable: pip3
     with_items:
       - Flask
       - PyYAML
@@ -53,17 +64,21 @@
 
   - name: Create system users for running applications
     user:
-      name: "app-{{ services_list }}"
+      name: "app-{{ item }}"
       system: "yes"
       shell: "/usr/bin/false"
+      create_home: "no"
+    with_items:
+      - "{{ services_list }}"
 
   - name: Create directories for applications
     file: 
-      path: "/opt/app-{{ services_list }}"
+      path: "/opt/app-{{ item }}"
       state: directory
       mode: '0755'
-      owner: "app-{{ services_list }}"
-      group: "app-{{ services_list }}"
-
+      owner: "app-{{ item }}"
+      group: "app-{{ item }}"
+    with_items:
+      - "{{ services_list }}"
 
 #  - name: Install applications
