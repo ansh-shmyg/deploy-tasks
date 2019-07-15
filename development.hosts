@@ -1,5 +1,8 @@
-[app-servers]
+[all]
 app-server1 ansible_host=192.168.1.214
 
+[app-servers]
+app-server1 
+
 [db-servers]
-#db-server1 ansible_host=10.10.10.2
+app-server1

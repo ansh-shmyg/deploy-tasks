@@ -1,0 +1,6 @@
+services_list:
+      - manager
+      - frontend
+      - logic
+      - query
+admin_user: "centos"

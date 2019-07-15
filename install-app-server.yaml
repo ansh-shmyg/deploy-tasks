@@ -1,16 +1,12 @@
 ---
 # Install server for Trading application
-# 
+# For development purpose only
+# Do not use in production!
 - name: Install sever with traiding app
   hosts: app-servers
   become: yes
-  vars:
-    services_list:
-      - manager
-      - frontend
-      - logic
-      - query
-    admin_user: "centos"
+  vars_files:
+    - vars/common.yaml
 
   tasks:
   - name: Install common admin user - "{{ admin_user }}"
@@ -45,7 +41,10 @@
       - python-setuptools
       - python36 
       - python36-pip
-   
+
+# This task updates pip in unsecure way by installing packages in "/usr/bin" path :
+# Do not use this task in production !
+# https://www.ayrx.me/look-before-you-pip
   - name: Update pip3
     pip: 
       name: pip
@@ -53,6 +52,9 @@
       executable: pip3
       extra_args: --install-option="--prefix=/usr/"
 
+# This task installs pip packages in unsecure way by placing them in "/usr/bin" path :
+# Do not use this task in production !
+# https://www.ayrx.me/look-before-you-pip
   - name: Install pip3 packages
     pip:
       name: "{{ item }}"
